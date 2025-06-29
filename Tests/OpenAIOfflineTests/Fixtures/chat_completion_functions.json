@@ -1,0 +1,20 @@
+{
+  "choices" : [
+    {
+      "index" : 0,
+      "message" : {
+        "annotations" : [
+
+        ],
+        "role" : "assistant"
+      }
+    }
+  ],
+  "created" : 1751224278,
+  "id" : "chatcmpl-BnrioJ5ktT7ePGzpXSkNAscSw0MJM",
+  "model" : "gpt-3.5-turbo-0125",
+  "object" : "chat.completion",
+  "usage" : {
+
+  }
+}

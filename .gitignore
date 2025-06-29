@@ -1,0 +1,6 @@
+.claude/
+.build/
+node_modules/
+package.json
+pnpm-lock.yaml
+xcuserdata/

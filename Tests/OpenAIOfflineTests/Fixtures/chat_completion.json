@@ -1,0 +1,21 @@
+{
+  "choices" : [
+    {
+      "index" : 0,
+      "message" : {
+        "annotations" : [
+
+        ],
+        "content" : "Hello! How can I assist you today?",
+        "role" : "assistant"
+      }
+    }
+  ],
+  "created" : 1751224277,
+  "id" : "chatcmpl-Bnrinv6lJtrdN0OulDCpqBuE1hS89",
+  "model" : "gpt-3.5-turbo-0125",
+  "object" : "chat.completion",
+  "usage" : {
+
+  }
+}
