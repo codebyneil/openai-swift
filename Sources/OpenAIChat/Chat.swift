@@ -487,11 +487,12 @@ public struct JSONStructuredOutput: Codable, Sendable {
         name = try container.decode(String.self, forKey: .name)
         strict = try container.decodeIfPresent(Bool.self, forKey: .strict)
 
-        let structuredOutputData = try container.decode(Data.self, forKey: .structuredOutput)
-        let structuredOutput =
-            try JSONSerialization.jsonObject(with: structuredOutputData, options: [])
-            as? [String: Any] ?? [:]
-        self.structuredOutputValue = JSONStructuredOutputValue(structuredOutput)
+        if let anyCodable = try container.decodeIfPresent(AnyCodable.self, forKey: .structuredOutput),
+           let dict = anyCodable.value as? [String: Any] {
+            self.structuredOutputValue = JSONStructuredOutputValue(dict)
+        } else {
+            self.structuredOutputValue = JSONStructuredOutputValue([:])
+        }
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -567,11 +568,9 @@ public struct FunctionDefinition: Codable, Sendable {
         description = try container.decodeIfPresent(String.self, forKey: .description)
         strict = try container.decodeIfPresent(Bool.self, forKey: .strict)
 
-        if let parametersData = try container.decodeIfPresent(Data.self, forKey: .parameters) {
-            let params =
-                try JSONSerialization.jsonObject(with: parametersData, options: [])
-                as? [String: Any]
-            self.parametersValue = params.map { JSONStructuredOutputValue($0) }
+        if let anyCodable = try container.decodeIfPresent(AnyCodable.self, forKey: .parameters),
+           let dict = anyCodable.value as? [String: Any] {
+            self.parametersValue = JSONStructuredOutputValue(dict)
         } else {
             self.parametersValue = nil
         }
