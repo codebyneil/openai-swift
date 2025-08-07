@@ -7,7 +7,7 @@ import Foundation
 ///
 /// ## Topics
 /// ### Creating a Client
-/// - ``init(apiKey:organization:session:maxRetries:retryDelay:)``
+/// - ``init(apiKey:organization:baseURL:session:maxRetries:retryDelay:)``
 ///
 /// ### Making Requests
 /// - ``makeRequest(endpoint:method:body:queryItems:)``
@@ -29,7 +29,7 @@ public final class OpenAI: Sendable {
     public let organization: String?
 
     /// The base URL for the OpenAI API.
-    public let baseURL = URL(string: "https://api.openai.com/v1")!
+    public let baseURL: URL
 
     /// The URLSession used for making network requests.
     public let session: URLSession
@@ -51,6 +51,7 @@ public final class OpenAI: Sendable {
     /// - Parameters:
     ///   - apiKey: Your OpenAI API key.
     ///   - organization: Optional organization ID for requests.
+    ///   - baseURL: The base URL for the OpenAI API. Defaults to `https://api.openai.com/v1`.
     ///   - session: URLSession to use for requests. Defaults to `.shared`.
     ///   - maxRetries: Maximum number of retry attempts for failed requests. Defaults to 3.
     ///   - retryDelay: Base delay in seconds between retry attempts. Defaults to 1.0.
@@ -58,11 +59,12 @@ public final class OpenAI: Sendable {
     /// - Note: The client automatically configures JSON encoding/decoding with snake_case conversion
     ///   and ISO8601 date formatting.
     public init(
-        apiKey: String, organization: String? = nil, session: URLSession = .shared,
-        maxRetries: Int = 3, retryDelay: TimeInterval = 1.0
+        apiKey: String, organization: String? = nil, baseURL: URL = URL(string: "https://api.openai.com/v1")!,
+        session: URLSession = .shared, maxRetries: Int = 3, retryDelay: TimeInterval = 1.0
     ) {
         self.apiKey = apiKey
         self.organization = organization
+        self.baseURL = baseURL
         self.session = session
         self.maxRetries = maxRetries
         self.retryDelay = retryDelay
