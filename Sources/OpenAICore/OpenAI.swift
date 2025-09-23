@@ -174,7 +174,7 @@ public final class OpenAI: Sendable {
     ///     print(chunk.choices.first?.delta.content ?? "")
     /// }
     /// ```
-    public func makeStreamingRequest<T: Encodable, Response: Decodable>(
+    public func makeStreamingRequest<T: Encodable, Response: Decodable & Sendable>(
         endpoint: String,
         body: T,
         responseType: Response.Type
