@@ -59,7 +59,8 @@ public final class OpenAI: Sendable {
     /// - Note: The client automatically configures JSON encoding/decoding with snake_case conversion
     ///   and ISO8601 date formatting.
     public init(
-        apiKey: String, organization: String? = nil, baseURL: URL = URL(string: "https://api.openai.com/v1")!,
+        apiKey: String, organization: String? = nil,
+        baseURL: URL = URL(string: "https://api.openai.com/v1")!,
         session: URLSession = .shared, maxRetries: Int = 3, retryDelay: TimeInterval = 1.0
     ) {
         self.apiKey = apiKey

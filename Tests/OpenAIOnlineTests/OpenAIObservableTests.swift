@@ -35,7 +35,7 @@ struct OpenAIObservableTests {
         try await Task.sleep(for: .seconds(2))
 
         #expect(observable.messages.count == 2)  // User message + assistant response
-        
+
         if observable.messages.count >= 2 {
             #expect(observable.messages[0].role == .user)
             #expect(observable.messages[1].role == .assistant)
@@ -143,7 +143,7 @@ struct OpenAIObservableTests {
         try await Task.sleep(for: .seconds(2))
 
         #expect(observable.messages.count == 3)  // System + User + Assistant
-        
+
         if observable.messages.count >= 3 {
             #expect(observable.messages[0].role == .system)
 

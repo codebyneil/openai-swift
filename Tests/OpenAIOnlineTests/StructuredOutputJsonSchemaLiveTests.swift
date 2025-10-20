@@ -27,7 +27,7 @@ struct StructuredOutputJsonSchemaLiveTests {
                 "result": ["type": "integer"]
             ],
             "required": ["result"],
-            "additionalProperties": false
+            "additionalProperties": false,
         ]
 
         let responseFormat = ResponseFormat(
@@ -42,7 +42,9 @@ struct StructuredOutputJsonSchemaLiveTests {
         let messages = [
             ChatMessage(
                 role: .user,
-                content: .text("What is the sum of 2 and 3? Return only the integer result in the 'result' field according to the schema.")
+                content: .text(
+                    "What is the sum of 2 and 3? Return only the integer result in the 'result' field according to the schema."
+                )
             )
         ]
 
@@ -58,8 +60,8 @@ struct StructuredOutputJsonSchemaLiveTests {
         let response = try await api.createChatCompletion(request)
 
         guard let message = response.choices.first?.message,
-              case .text(let jsonString) = message.content,
-              let data = jsonString.data(using: String.Encoding.utf8)
+            case .text(let jsonString) = message.content,
+            let data = jsonString.data(using: String.Encoding.utf8)
         else {
             Issue.record("Expected text content with JSON payload")
             return
@@ -68,4 +70,4 @@ struct StructuredOutputJsonSchemaLiveTests {
         let sum = try JSONDecoder().decode(SumResult.self, from: data)
         #expect(sum.result == 5)
     }
-} 
+}

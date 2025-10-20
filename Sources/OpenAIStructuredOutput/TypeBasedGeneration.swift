@@ -1,12 +1,12 @@
 import Foundation
-import OpenAICore
 import OpenAIChat
+import OpenAICore
 
 // MARK: - Type-Based Schema Generation
 
 /// Extension to generate JSON schemas from Swift types without requiring instances.
 extension StructuredOutputGenerator {
-    
+
     /// Generates a JSON Schema from a Swift type using compile-time type information.
     ///
     /// This method creates schemas for common Swift types without needing an instance.
@@ -29,7 +29,7 @@ extension StructuredOutputGenerator {
     ///     let age: Int
     ///     let email: String?
     /// }
-    /// 
+    ///
     /// let schema = StructuredOutputGenerator.generateSchema(for: User.self)
     /// ```
     public static func generateSchema<T>(for type: T.Type) -> [String: Any] {
@@ -37,25 +37,25 @@ extension StructuredOutputGenerator {
         if let convertibleType = type as? any StructuredOutputConvertible.Type {
             return convertibleType.generateStructuredOutput()
         }
-        
+
         // Handle primitive types
         switch type {
         case is String.Type, is String?.Type:
             return ["type": "string"]
         case is Int.Type, is Int?.Type,
-             is Int8.Type, is Int8?.Type,
-             is Int16.Type, is Int16?.Type,
-             is Int32.Type, is Int32?.Type,
-             is Int64.Type, is Int64?.Type,
-             is UInt.Type, is UInt?.Type,
-             is UInt8.Type, is UInt8?.Type,
-             is UInt16.Type, is UInt16?.Type,
-             is UInt32.Type, is UInt32?.Type,
-             is UInt64.Type, is UInt64?.Type:
+            is Int8.Type, is Int8?.Type,
+            is Int16.Type, is Int16?.Type,
+            is Int32.Type, is Int32?.Type,
+            is Int64.Type, is Int64?.Type,
+            is UInt.Type, is UInt?.Type,
+            is UInt8.Type, is UInt8?.Type,
+            is UInt16.Type, is UInt16?.Type,
+            is UInt32.Type, is UInt32?.Type,
+            is UInt64.Type, is UInt64?.Type:
             return ["type": "integer"]
         case is Float.Type, is Float?.Type,
-             is Double.Type, is Double?.Type,
-             is Decimal.Type, is Decimal?.Type:
+            is Double.Type, is Double?.Type,
+            is Decimal.Type, is Decimal?.Type:
             return ["type": "number"]
         case is Bool.Type, is Bool?.Type:
             return ["type": "boolean"]
@@ -72,7 +72,7 @@ extension StructuredOutputGenerator {
             return inferStructure(for: type)
         }
     }
-    
+
     /// Infers the structure of a type using Mirror and other runtime information.
     private static func inferStructure<T>(for type: T.Type) -> [String: Any] {
         // Check if it's an array type by checking the type name
@@ -80,16 +80,16 @@ extension StructuredOutputGenerator {
         if typeName.hasPrefix("Array<") || typeName.hasPrefix("[") {
             return [
                 "type": "array",
-                "items": ["type": "object"] // Generic object for now
+                "items": ["type": "object"],  // Generic object for now
             ]
         }
-        
+
         // Default to object type for complex types
         return [
             "type": "object",
             "properties": [:],
             "additionalProperties": false,
-            "description": "Type: \(String(describing: type))"
+            "description": "Type: \(String(describing: type))",
         ]
     }
 }
@@ -109,7 +109,7 @@ public struct PropertyInfo {
     public let isOptional: Bool
     public let description: String?
     public let constraints: PropertyConstraints?
-    
+
     public init(
         name: String,
         type: String,
@@ -133,7 +133,7 @@ public struct PropertyConstraints {
     public let maxLength: Int?
     public let pattern: String?
     public let enumValues: [Any]?
-    
+
     public init(
         minimum: Double? = nil,
         maximum: Double? = nil,
@@ -156,11 +156,11 @@ public struct PropertyConstraints {
 /// A type-safe wrapper for transforming OpenAI responses to Swift types.
 public struct StructuredResponse<T: Decodable> {
     private let jsonString: String
-    
+
     init(jsonString: String) {
         self.jsonString = jsonString
     }
-    
+
     /// Decodes the response into the specified type.
     ///
     /// - Parameter type: The type to decode into (can be inferred)
@@ -175,14 +175,14 @@ public struct StructuredResponse<T: Decodable> {
                 )
             )
         }
-        
+
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
-        
+
         return try decoder.decode(type, from: data)
     }
-    
+
     /// Decodes the response with a custom JSONDecoder configuration.
     ///
     /// - Parameters:
@@ -202,7 +202,7 @@ public struct StructuredResponse<T: Decodable> {
                 )
             )
         }
-        
+
         let decoder = JSONDecoder()
         configure(decoder)
         return try decoder.decode(type, from: data)
@@ -233,7 +233,7 @@ extension OpenAI {
     ///     let sentiment: String
     ///     let score: Double
     /// }
-    /// 
+    ///
     /// let result = try await openAI.createChatCompletionTyped(
     ///     model: "gpt-4",
     ///     messages: messages,
@@ -251,13 +251,13 @@ extension OpenAI {
     ) async throws -> T {
         // Generate schema for the type
         let schema = StructuredOutputGenerator.generateSchema(for: responseType)
-        
+
         let responseFormat = ResponseFormatBuilder.buildResponseFormat(
             name: String(describing: responseType),
             schema: schema,
             strict: strict
         )
-        
+
         // Create the request
         let request = ChatRequest(
             model: model,
@@ -266,26 +266,27 @@ extension OpenAI {
             maxTokens: maxTokens,
             responseFormat: responseFormat
         )
-        
+
         // Make the API call
         let response = try await createChatCompletion(request)
-        
+
         // Extract and decode the response
         guard let message = response.choices.first?.message,
-              case .text(let jsonString) = message.content else {
+            case .text(let jsonString) = message.content
+        else {
             throw OpenAIError.missingData
         }
-        
+
         // Use the type-safe wrapper for better error handling
         let structuredResponse = StructuredResponse<T>(jsonString: jsonString)
-        
+
         do {
             return try structuredResponse.decode()
         } catch {
             throw OpenAIError.decodingError(error)
         }
     }
-    
+
     /// Creates a chat completion and returns a structured response wrapper.
     ///
     /// This version returns a `StructuredResponse` wrapper that allows for
@@ -308,7 +309,7 @@ extension OpenAI {
     ///     messages: messages,
     ///     responseType: MyType.self
     /// )
-    /// 
+    ///
     /// // Decode with custom configuration
     /// let decoder = JSONDecoder()
     /// decoder.keyDecodingStrategy = .custom { /* ... */ }
@@ -324,13 +325,13 @@ extension OpenAI {
     ) async throws -> StructuredResponse<T> {
         // Generate schema for the type
         let schema = StructuredOutputGenerator.generateSchema(for: responseType)
-        
+
         let responseFormat = ResponseFormatBuilder.buildResponseFormat(
             name: String(describing: responseType),
             schema: schema,
             strict: strict
         )
-        
+
         // Create the request
         let request = ChatRequest(
             model: model,
@@ -339,16 +340,17 @@ extension OpenAI {
             maxTokens: maxTokens,
             responseFormat: responseFormat
         )
-        
+
         // Make the API call
         let response = try await createChatCompletion(request)
-        
+
         // Extract the response
         guard let message = response.choices.first?.message,
-              case .text(let jsonString) = message.content else {
+            case .text(let jsonString) = message.content
+        else {
             throw OpenAIError.missingData
         }
-        
+
         return StructuredResponse(jsonString: jsonString)
     }
 }
@@ -368,11 +370,12 @@ public struct PropertyDefinition {
     let name: String
     let schema: [String: Any]
     let required: Bool
-    
-    public init(name: String, type: String, required: Bool = true, constraints: [String: Any] = [:]) {
+
+    public init(name: String, type: String, required: Bool = true, constraints: [String: Any] = [:])
+    {
         self.name = name
         self.required = required
-        
+
         var schema: [String: Any] = ["type": type]
         for (key, value) in constraints {
             schema[key] = value
@@ -386,39 +389,53 @@ public func property(_ name: String, type: String, required: Bool = true) -> Pro
     PropertyDefinition(name: name, type: type, required: required)
 }
 
-public func string(_ name: String, required: Bool = true, minLength: Int? = nil, maxLength: Int? = nil, pattern: String? = nil) -> PropertyDefinition {
+public func string(
+    _ name: String, required: Bool = true, minLength: Int? = nil, maxLength: Int? = nil,
+    pattern: String? = nil
+) -> PropertyDefinition {
     var constraints: [String: Any] = [:]
     if let min = minLength { constraints["minLength"] = min }
     if let max = maxLength { constraints["maxLength"] = max }
     if let pat = pattern { constraints["pattern"] = pat }
-    
-    return PropertyDefinition(name: name, type: "string", required: required, constraints: constraints)
+
+    return PropertyDefinition(
+        name: name, type: "string", required: required, constraints: constraints)
 }
 
-public func integer(_ name: String, required: Bool = true, minimum: Int? = nil, maximum: Int? = nil) -> PropertyDefinition {
+public func integer(_ name: String, required: Bool = true, minimum: Int? = nil, maximum: Int? = nil)
+    -> PropertyDefinition
+{
     var constraints: [String: Any] = [:]
     if let min = minimum { constraints["minimum"] = min }
     if let max = maximum { constraints["maximum"] = max }
-    
-    return PropertyDefinition(name: name, type: "integer", required: required, constraints: constraints)
+
+    return PropertyDefinition(
+        name: name, type: "integer", required: required, constraints: constraints)
 }
 
-public func number(_ name: String, required: Bool = true, minimum: Double? = nil, maximum: Double? = nil) -> PropertyDefinition {
+public func number(
+    _ name: String, required: Bool = true, minimum: Double? = nil, maximum: Double? = nil
+) -> PropertyDefinition {
     var constraints: [String: Any] = [:]
     if let min = minimum { constraints["minimum"] = min }
     if let max = maximum { constraints["maximum"] = max }
-    
-    return PropertyDefinition(name: name, type: "number", required: required, constraints: constraints)
+
+    return PropertyDefinition(
+        name: name, type: "number", required: required, constraints: constraints)
 }
 
 public func boolean(_ name: String, required: Bool = true) -> PropertyDefinition {
     PropertyDefinition(name: name, type: "boolean", required: required)
 }
 
-public func array(_ name: String, itemType: String, required: Bool = true, minItems: Int? = nil, maxItems: Int? = nil) -> PropertyDefinition {
+public func array(
+    _ name: String, itemType: String, required: Bool = true, minItems: Int? = nil,
+    maxItems: Int? = nil
+) -> PropertyDefinition {
     var constraints: [String: Any] = ["items": ["type": itemType]]
     if let min = minItems { constraints["minItems"] = min }
     if let max = maxItems { constraints["maxItems"] = max }
-    
-    return PropertyDefinition(name: name, type: "array", required: required, constraints: constraints)
+
+    return PropertyDefinition(
+        name: name, type: "array", required: required, constraints: constraints)
 }

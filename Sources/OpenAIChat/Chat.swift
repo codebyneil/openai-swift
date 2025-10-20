@@ -487,8 +487,10 @@ public struct JSONStructuredOutput: Codable, Sendable {
         name = try container.decode(String.self, forKey: .name)
         strict = try container.decodeIfPresent(Bool.self, forKey: .strict)
 
-        if let anyCodable = try container.decodeIfPresent(AnyCodable.self, forKey: .structuredOutput),
-           let dict = anyCodable.value as? [String: Any] {
+        if let anyCodable = try container.decodeIfPresent(
+            AnyCodable.self, forKey: .structuredOutput),
+            let dict = anyCodable.value as? [String: Any]
+        {
             self.structuredOutputValue = JSONStructuredOutputValue(dict)
         } else {
             self.structuredOutputValue = JSONStructuredOutputValue([:])
@@ -569,7 +571,8 @@ public struct FunctionDefinition: Codable, Sendable {
         strict = try container.decodeIfPresent(Bool.self, forKey: .strict)
 
         if let anyCodable = try container.decodeIfPresent(AnyCodable.self, forKey: .parameters),
-           let dict = anyCodable.value as? [String: Any] {
+            let dict = anyCodable.value as? [String: Any]
+        {
             self.parametersValue = JSONStructuredOutputValue(dict)
         } else {
             self.parametersValue = nil

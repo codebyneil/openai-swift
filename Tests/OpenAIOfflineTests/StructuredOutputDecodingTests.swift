@@ -61,7 +61,8 @@ struct StructuredOutputDecodingTests {
             """
 
         let decoder = JSONDecoder()
-        let functionDef = try decoder.decode(FunctionDefinition.self, from: json.data(using: .utf8)!)
+        let functionDef = try decoder.decode(
+            FunctionDefinition.self, from: json.data(using: .utf8)!)
 
         #expect(functionDef.name == "get_weather")
         #expect(functionDef.description == "Retrieve weather information")
@@ -77,4 +78,4 @@ struct StructuredOutputDecodingTests {
             Issue.record("Expected properties dictionary in parameters")
         }
     }
-} 
+}
