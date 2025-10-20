@@ -1,0 +1,57 @@
+name: Swift Format
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: macos-latest
+    env:
+      FORMAT_COMMIT_MSG: "Swift formatting applied."
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Check previous commit message
+        id: check_commit
+        run: |
+          LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [ "$LAST_COMMIT_MSG" = "$FORMAT_COMMIT_MSG" ]; then
+            echo "Previous commit was a format commit, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run swift-format
+        if: steps.check_commit.outputs.skip == 'false'
+        run: xcrun swift-format -ri .
+
+
+      - name: Check for changes
+        if: steps.check_commit.outputs.skip == 'false'
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes needed"
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Formatting changes detected"
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_commit.outputs.skip == 'false' && steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config user.name "swift-format[bot]"
+          git config user.email "swift-format[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "$FORMAT_COMMIT_MSG"
+          git push
